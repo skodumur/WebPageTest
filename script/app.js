@@ -3,6 +3,7 @@ const LOCATIONS= {'wpt_agent_north_virginia_wptdriver': 'N. Virginia',
     'wpt_agent_oregon_wptdriver': 'Oregon',
     'agent_california_wptdriver': 'California',
     'agent_ohio_wptdriver': 'Ohio'};
+const FIELDS = ['loadTime', 'fullyLoaded'];
 let pendingKeys = [];
 
 function hitServer() {
@@ -50,14 +51,22 @@ function cancelPending() {
 function toggleLoader() {
     $('.toggle').toggleClass('hide');
 }
+function getSelectedLocations() {
+    let selected = [];
+    $('input:checked').each((ind, ele) => {
+      selected.push($(ele).val());
+    });
+    return selected;
+}
 function getFullURls(urls) {
     let prefix = SERVER_URL + 'runtest.php?priority=6&runs=1&mv=1&video=0&f=xml&fvonly=1&k=33f6b472561edfcf6130b2a65b687104f9ed5d62&url=';
     let encodedURL;
     let fullList = [];
+    let selectLocations = getSelectedLocations();
     _.forEach(urls, (url) => {
         if (url) {
             encodedURL = prefix + encodeURIComponent(url);
-            _.forEach(_.keys(LOCATIONS), (location) => {
+            _.forEach(selectLocations, (location) => {
                 fullList.push(encodedURL + '&location=' + location + '.Cable');
             })
         }
@@ -115,7 +124,7 @@ function process(id) {
 
 function convertToCSV(objArray) {
     let array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
-    let headers = ['url', 'summary', 'location', 'loadTime'];
+    let headers = _.union(['url', 'summary', 'location'], FIELDS);
     array.unshift(headers);
     let result = "data:text/csv;charset=utf-8,";
     for (let i = 0; i < array.length; i++) {
@@ -146,13 +155,14 @@ function batchDownload(tids) {
 
 function download(id) {
     let fullURL = SERVER_URL + 'jsonResult.php?test=' + id;
-    let fields = ['loadTime'];
     return new Promise((resolve, reject) => {
         $.get(fullURL, (data, status) => {
             if (data.statusCode === 200) {
                 let result = _.pick(data.data, ['url', 'summary']);
                 result.location = LOCATIONS[_.split(data.data.location, ':')[0]];
-                result.loadTime = _.get(data.data.runs[1].firstView, fields);
+                _.forEach(FIELDS, (field) => {
+                    result[field] = _.get(data,['data', 'runs', '1', 'firstView', field] );
+                });
                 resolve(result);
             } else {
                 resolve();
@@ -168,7 +178,6 @@ function fetch(url) {
                 let $data = $(data);
                 let statusCode = $data.find('statusCode')[0].innerHTML;
                 let testId = $data.find('testId')[0].innerHTML;
-                debugger;
                 if (statusCode === '200') {
                     resolve([testId, url])
                 }

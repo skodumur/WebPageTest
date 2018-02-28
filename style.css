@@ -26,8 +26,12 @@
     width: 100px;
     height: 55px;
 }
+.checkbox-set{
+    display: inline-block;
+    width: 180px;
+}
 .loader {
-    margin-left: 35%;
+    margin-left: 42%;
     border: 16px solid #f3f3f3;
     border-radius: 50%;
     border-top: 16px solid #3498db;

@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.5/lodash.js"></script>
+    <script src="script/jquery-3.3.1.min.js"></script>
+    <script src="script/lodash.min.js"></script>
     <script src="script/app.js"></script>
 </head>
 <body>
@@ -18,6 +18,16 @@
 
     <div id="overlay" class="toggle hide"></div>
     <input class="fileUpload" type="file" id="file" name="file" multiple>
+    <div class="checkbox-set">
+        <input type="checkbox" name="wpt_agent_north_virginia_wptdriver" value="wpt_agent_north_virginia_wptdriver">
+        <label>N. Virginia</label>
+        <input type="checkbox" name="wpt_agent_oregon_wptdriver" value="wpt_agent_oregon_wptdriver">
+        <label>Oregon</label>
+        <input type="checkbox" name="agent_california_wptdriver" value="agent_california_wptdriver">
+        <label>California</label>
+        <input type="checkbox" name="agent_ohio_wptdriver" value="agent_ohio_wptdriver">
+        <label>Ohio</label>
+    </div>
     <button class="hit-button" onclick="hitServer()">Submit</button>
     <div class="loader hide toggle" ></div>
 </div>
