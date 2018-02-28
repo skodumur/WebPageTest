@@ -3,9 +3,11 @@ const LOCATIONS= {'wpt_agent_north_virginia_wptdriver': 'N. Virginia',
     'wpt_agent_oregon_wptdriver': 'Oregon',
     'agent_california_wptdriver': 'California',
     'agent_ohio_wptdriver': 'Ohio'};
+let pendingKeys = [];
 
 function hitServer() {
     toggleLoader();
+    pendingKeys = [];
     let url_ids = {};
     getURLs().then((urls) => {
         if (!urls.length) {
@@ -15,7 +17,6 @@ function hitServer() {
         let fullURLs = getFullURls(urls);
         $('.status').html("Pending request: " + fullURLs.length);
         Promise.all(fullURLs.map(fetch)).then((values) => {
-            let pendingKeys = [];
             let pendingDownloads = [];
             _.forEach(values, (val) => {
                 url_ids[val[0]] = val[1];
@@ -36,13 +37,18 @@ function hitServer() {
                         console.log('wait....')
                     }
                 });
-            }, pendingKeys.length * 1000);
+            }, pendingKeys.length * 500);
         })
     });
 }
+function cancelPending() {
+    _.forEach(pendingKeys, (key) => {
+        let cancelURL = SERVER_URL + 'cancelTest.php?test=' + key;
+        $.get(cancelURL);
+    });
+}
 function toggleLoader() {
-    $('.loader').toggleClass('hide');
-    $('#overlay').toggleClass('hide');
+    $('.toggle').toggleClass('hide');
 }
 function getFullURls(urls) {
     let prefix = SERVER_URL + 'runtest.php?priority=6&runs=1&mv=1&video=0&f=xml&fvonly=1&k=33f6b472561edfcf6130b2a65b687104f9ed5d62&url=';
@@ -98,7 +104,7 @@ function process(id) {
     return new Promise((resolve, reject) => {
         $.get(checkURL, (data, status) => {
             if (status === 'success') {
-                if (data.statusCode === 200) {
+                if (data.statusCode === 200 || data.statusCode === 402) {
                     resolve(id);
                 }
                 resolve();
@@ -134,7 +140,6 @@ function batchDownload(tids) {
         link.setAttribute("href", encodedUri);
         link.setAttribute("download", Date.now() + ".csv");
         document.body.appendChild(link);
-        $('.status').html("");
         link.click();
     })
 }
@@ -144,10 +149,14 @@ function download(id) {
     let fields = ['loadTime'];
     return new Promise((resolve, reject) => {
         $.get(fullURL, (data, status) => {
-            let result = _.pick(data.data, ['url', 'summary']);
-            result.location = LOCATIONS[_.split(data.data.location, ':')[0]];
-            result.loadTime = _.get(data.data.runs[1].firstView, fields);
-            resolve(result);
+            if (data.statusCode === 200) {
+                let result = _.pick(data.data, ['url', 'summary']);
+                result.location = LOCATIONS[_.split(data.data.location, ':')[0]];
+                result.loadTime = _.get(data.data.runs[1].firstView, fields);
+                resolve(result);
+            } else {
+                resolve();
+            }
         })
     })
 }
@@ -166,28 +175,4 @@ function fetch(url) {
             }
         }, 'xml');
     });
-}
-
-function makeCall(fullURL, url, url_ids, urls) {
-    $.get(encodedURL, function (data, status) {
-        if (status === 'success') {
-            console.log(data, status);
-            var $data = $(data);
-            var statusCode = $data.find('statusCode')[0].innerHTML;
-            var testId = $data.find('testId')[0].innerHTML;
-            debugger;
-            if (statusCode === '200') {
-                url_ids[testId] = url;
-            }
-        }
-        if (urls.length === _.size(url_ids)) {
-            processPendingList(_.keys(url_ids));
-        }
-    }, 'xml');
-
-    function processPendingList(pendingKeys) {
-        while (pendingKeys.length) {
-
-        }
-    }
 }

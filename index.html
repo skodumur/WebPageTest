@@ -9,12 +9,17 @@
     <script src="script/app.js"></script>
 </head>
 <body>
+<div>
+    <button class="hide cancel-button toggle" onclick="cancelPending()">Cancel Pending Tests</button>
+    <p class="status hide toggle"></p>
+</div>
 <div id="container">
-    <p class="status"></p>
-    <div id="overlay" class="hide"></div>
+
+
+    <div id="overlay" class="toggle hide"></div>
     <input class="fileUpload" type="file" id="file" name="file" multiple>
     <button class="hit-button" onclick="hitServer()">Submit</button>
-    <div class="loader hide" ></div>
+    <div class="loader hide toggle" ></div>
 </div>
 </body>
 
